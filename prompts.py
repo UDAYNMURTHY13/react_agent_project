@@ -10,7 +10,8 @@ Author: Uday N
 Project: Capstone Project 3 - ReAct Agent with Web Search & Weather Tools
 """
 
-from langchain.prompts import PromptTemplate
+from langchain.prompts.prompt import PromptTemplate
+
 
 # 🔹 Main ReAct decision-making prompt
 REACT_PROMPT = PromptTemplate.from_template("""
