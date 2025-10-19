@@ -3,8 +3,9 @@ python-dotenv
 requests
 
 # LLM + Agent framework
-langchain
+langchain>=0.1.0
 langchain-groq
+
 
 # Optional but helpful
 tavily-python
@@ -15,4 +16,4 @@ aiohttp
 
 # If you plan to use Streamlit for a simple UI later
 streamlit
-langchain-groq
+
