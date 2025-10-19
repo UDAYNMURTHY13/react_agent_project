@@ -1,0 +1,17 @@
+# Core dependencies
+python-dotenv
+requests
+
+# LLM + Agent framework
+langchain
+langchain-groq
+
+# Optional but helpful
+tavily-python
+pytest
+
+# For async / web integrations
+aiohttp
+
+# If you plan to use Streamlit for a simple UI later
+streamlit
