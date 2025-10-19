@@ -1,28 +1,19 @@
-"""
-agent.py
----------
-ReAct Agent (Reasoning + Acting) implementation using:
-- Groq API for LLM reasoning.
-- Web Search Tool for latest information.
-- OpenWeatherMap API for weather updates.
-
-Author: Uday N
-Capstone Project 3 - ReAct Agent with Web Search and Weather Tools
-"""
 
 import os
 import re
 from datetime import datetime
 from dotenv import load_dotenv
-from langchain.chains import LLMChain
 from langchain_groq import ChatGroq
 from tools import web_search_tool, weather_tool
 from prompts import REACT_PROMPT, FOLLOW_UP_PROMPT
+from typing import Optional
+
+# ---------------- Environment & LLM ---------------- #
 
 # Load environment variables
 load_dotenv()
 
-# Load API key
+# Load Groq API key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
     raise ValueError("Missing GROQ_API_KEY in .env file")
@@ -34,70 +25,42 @@ llm = ChatGroq(
     groq_api_key=GROQ_API_KEY
 )
 
-# LLM chain for initial reasoning
-llm_chain = LLMChain(llm=llm, prompt=REACT_PROMPT)
-
-# LLM chain for follow-up after tool usage
-followup_chain = LLMChain(llm=llm, prompt=FOLLOW_UP_PROMPT)
-
 
 # ---------------- Helper Functions ---------------- #
 
-def extract_city(query: str) -> str | None:
-    """Extract city name from user query"""
+def extract_city(query: str) -> Optional[str]:
+    """Extract city name from user query."""
     query_lower = query.lower()
-    match_in = re.search(r'weather in ([a-zA-Z\s]+)', query_lower)
-    match_end = re.search(r'([a-zA-Z\s]+) weather', query_lower)
-    city = None
-    if match_in:
-        city = match_in.group(1).strip().title()
-    elif match_end:
-        city = match_end.group(1).strip().title()
-    return city
+    match = re.search(r'(?:weather|temperature) in ([a-zA-Z\s]+)', query_lower)
+    if not match:
+        match = re.search(r'([a-zA-Z\s]+) (?:weather|temperature)', query_lower)
+    if match:
+        return match.group(1).strip().title()
+    return None
 
 
 def is_web_searchable(query: str) -> bool:
-    """
-    Determine if the query should go to web search.
-    Basic heuristic: keywords like 'latest', 'news', 'search', 'update', 'AI', 'politics', etc.
-    """
+    """Determine if the query should go to web search."""
     keywords = [
-        # News & Updates
         "latest", "news", "search", "update", "updates", "recent",
         "breaking", "headlines", "trending", "current", "today",
-        
-        # Technology & AI
         "AI", "artificial intelligence", "machine learning", "ML",
         "technology", "tech", "software", "hardware", "gadget",
         "smartphone", "computer", "internet", "cyber", "digital",
-        
-        # Politics & Government
         "politics", "political", "election", "government", "president",
         "minister", "parliament", "congress", "policy", "legislation",
-        
-        # Business & Economy
         "economy", "economic", "finance", "financial", "business",
         "markets", "stock", "trading", "investment", "company",
         "startup", "industry", "commercial", "corporate",
-        
-        # Science & Research
         "science", "scientific", "research", "study", "discovery",
         "experiment", "innovation", "breakthrough", "medical",
-        
-        # Global & World Events
         "world", "global", "international", "country", "nation",
         "events", "happening", "occurred", "crisis",
-        
-        # Sports & Entertainment
         "sports", "game", "match", "tournament", "championship",
         "player", "team", "score", "movie", "film", "music",
         "celebrity", "entertainment",
-        
-        # Question Words (often need search)
         "who is", "what is", "when did", "where is", "how to",
         "why did", "which", "find", "lookup", "tell me about",
-        
-        # Informational
         "information", "details", "facts", "data", "statistics",
         "report", "article", "source", "reference"
     ]
@@ -107,66 +70,94 @@ def is_web_searchable(query: str) -> bool:
 # ---------------- Main Agent Function ---------------- #
 
 def run_agent(query: str) -> str:
+    """Executes the ReAct loop with tool integration and LLM fallback."""
     query_lower = query.lower().strip()
 
     # --- Real-time queries ---
     if "time" in query_lower:
-        return f"The current time is {datetime.now().strftime('%H:%M:%S')}"
-    elif "date" in query_lower:
-        return f"Today's date is {datetime.now().strftime('%Y-%m-%d')}"
-    elif "weather" in query_lower or "rain" in query_lower:
+        return f"⏰ The current time is **{datetime.now().strftime('%H:%M:%S')}**"
+    if "date" in query_lower:
+        return f"📅 Today's date is **{datetime.now().strftime('%Y-%m-%d')}** ({datetime.now().strftime('%A')})"
+    if "weather" in query_lower or "rain" in query_lower:
         city = extract_city(query)
         if city:
+            print(f"🌤️ Fetching weather for: {city}")
             return weather_tool(city)
-        else:
-            return "Please specify a valid city for weather information."
-    elif is_web_searchable(query):
+        return "🌍 Please specify a valid city for weather information. Example: 'What's the weather in Paris?'"
+
+    if is_web_searchable(query):
+        print(f"🔍 Performing web search for: {query}")
         return web_search_tool(query)
 
     # --- Fallback to LLM reasoning ---
     print(f"🧠 User Query (LLM fallback): {query}")
-    response = llm_chain.run(user_query=query).strip()
-    print(f"🤖 Agent Thought: {response}")
+    try:
+        formatted_prompt = REACT_PROMPT.format(user_query=query)
+        response = llm.invoke(formatted_prompt).content.strip()
+        print(f"🤖 Agent Thought: {response}")
 
-    # --- Direct Answer ---
-    if response.startswith("Final Answer:"):
-        return response.replace("Final Answer:", "").strip()
+        # --- Direct Answer ---
+        if "Final Answer:" in response:
+            return response.split("Final Answer:")[-1].strip()
 
-    # --- Tool Invocation ---
-    elif "Action:" in response and "Action Input:" in response:
-        try:
+        # --- Tool Invocation ---
+        if "Action:" in response and "Action Input:" in response:
             tool_name = response.split("Action:")[1].split("\n")[0].strip()
             tool_input = response.split("Action Input:")[1].strip()
-            print(f"🛠 Using tool: {tool_name} with input: {tool_input}")
+            print(f"🛠️ Using tool: {tool_name} with input: {tool_input}")
 
-            if tool_name.lower() == "web search":
+            # Dispatch tool
+            tool_name_lower = tool_name.lower()
+            if "search" in tool_name_lower:
                 observation = web_search_tool(tool_input)
-            elif tool_name.lower() == "weather":
+            elif "weather" in tool_name_lower:
                 observation = weather_tool(tool_input)
             else:
-                return f"❌ Unknown tool: {tool_name}"
+                return f"❌ Unknown tool: {tool_name}. Available tools: Web Search, Weather"
 
             # Use follow-up LLM prompt for final answer
-            final_answer = followup_chain.run(
+            formatted_followup = FOLLOW_UP_PROMPT.format(
                 tool_name=tool_name,
                 observation=observation
-            ).strip()
-            return final_answer.replace("Final Answer:", "").strip()
+            )
+            final_answer = llm.invoke(formatted_followup).content.strip()
+            if "Final Answer:" in final_answer:
+                return final_answer.split("Final Answer:")[-1].strip()
+            return final_answer
 
-        except Exception as e:
-            return f"⚠️ Tool execution error: {str(e)}"
-
-    # --- Unknown response format ---
-    else:
         return "⚠️ Sorry, I couldn't process that query properly."
+
+    except Exception as e:
+        print(f"⚠️ Agent error: {str(e)}")
+        return "⚠️ An error occurred while processing your request."
 
 
 # ---------------- CLI Test Loop ---------------- #
 if __name__ == "__main__":
     print("🤖 ReAct Agent (Groq + Web + Weather) initialized!")
+    print("📍 Supports weather for any city worldwide")
+    print("🔍 Supports web search for latest information\n")
+
+    test_queries = [
+        "What's the weather in Paris?",
+        "Search for latest AI news",
+        "What time is it?",
+        "Weather in Tokyo"
+    ]
+
+    print("Example queries you can try:")
+    for q in test_queries:
+        print(f"  - {q}")
+
+    print("\n" + "="*50 + "\n")
+
     while True:
-        user_input = input("\nAsk something (type 'quit' to exit): ")
+        user_input = input("Ask something (type 'quit' to exit): ").strip()
         if user_input.lower() in ["quit", "exit"]:
+            print("👋 Goodbye!")
             break
-        answer = run_agent(user_input)
-        print(f"\n💬 Agent: {answer}")
+        if user_input:
+            print("\n" + "-"*50)
+            answer = run_agent(user_input)
+            print(f"\n💬 Agent: {answer}")
+            print("-"*50 + "\n")
