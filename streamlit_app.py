@@ -306,6 +306,6 @@ if user_input:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #555; padding: 1rem; font-size: 0.8rem;'>
-    ReAct Framework • Groq LLM • Built with Streamlit
+    ReAct Framework • Groq LLM • Built By Uday
 </div>
 """, unsafe_allow_html=True)
