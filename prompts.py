@@ -1,17 +1,4 @@
-"""
-prompts.py
------------
-This module defines all the prompt templates used by the ReAct Agent.
-
-It helps maintain clean separation between logic (agent.py) and
-prompt design (ReAct reasoning instructions).
-
-Author: Uday N
-Project: Capstone Project 3 - ReAct Agent with Web Search & Weather Tools
-"""
-
-from langchain.prompts.prompt import PromptTemplate
-
+from langchain.prompts import PromptTemplate
 
 # 🔹 Main ReAct decision-making prompt
 REACT_PROMPT = PromptTemplate.from_template("""
