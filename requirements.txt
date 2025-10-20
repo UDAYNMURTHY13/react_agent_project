@@ -1,18 +1,21 @@
-# Core dependencies
+# --- Core dependencies ---
 python-dotenv==1.0.1
 requests==2.32.3
+aiohttp==3.9.5
 
-# LLM + Agent framework
+# --- LangChain + Groq ---
 langchain==0.2.11
 langchain-core==0.2.5
 langchain-groq==0.1.4
 
-# Optional but helpful
+# --- Utilities ---
 tavily-python==0.3.3
 pytest==8.3.3
 
-# For async / web integrations
-aiohttp==3.9.5
-
-# For Streamlit UI
+# --- Streamlit (UI Framework) ---
 streamlit==1.39.0
+
+# --- Compatibility Fixes ---
+rich==13.7.1
+markdown-it-py==3.0.0
+Pygments==2.18.0
