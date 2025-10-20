@@ -109,27 +109,6 @@ OPENWEATHER_API_KEY=your_openweather_api_key_here
 
 > 💡 **Tip**: Copy `.env.example` to `.env` and fill in your API keys
 
----
-
-## 🏃‍♂️ Usage
-
-### Running the Chatbot UI
-
-```bash
-streamlit run app.py
-```
-
-The app will open in your browser at `http://localhost:8501`
-
-### Running the CLI Version
-
-```bash
-python agent.py
-```
-
----
-
-## 💡 Example Queries
 
 ### 🔍 Web Search Queries
 
@@ -176,30 +155,6 @@ What's today's date?
 - **Quick Action Buttons**: Pre-configured query suggestions
 - **Responsive Layout**: Optimized for all screen sizes
 
-### Screenshots
-
-```
-┌─────────────────────────────────────────┐
-│   🧠 ReAct Agent                        │
-│   Think. Reason. Act.                   │
-├─────────────────────────────────────────┤
-│                                         │
-│  👤 User: What's the weather in Paris?  │
-│     10:30                               │
-│                                         │
-│  🧠 Agent: 🌤️ Weather                  │
-│     Based on current data, Paris has:   │
-│     🌡️ Temperature: 18°C               │
-│     ☁️ Conditions: Partly Cloudy       │
-│     10:30                               │
-│                                         │
-├─────────────────────────────────────────┤
-│  💬 Type your message here...          │
-└─────────────────────────────────────────┘
-```
-
----
-
 ## 🛠️ Tools & Technologies
 
 ### Core Stack
@@ -218,18 +173,6 @@ What's today's date?
 | 🌤️ **Weather Tool** | Fetches real-time weather data for any city | OpenWeatherMap API |
 | 🔍 **Web Search Tool** | Searches web for articles and information | DuckDuckGo/Tavily API |
 | 🧠 **Groq LLM** | Advanced reasoning using ReAct framework | Groq API |
-
-### Dependencies
-
-```txt
-streamlit>=1.28.0
-langchain>=0.1.0
-langchain-groq>=0.0.1
-python-dotenv>=1.0.0
-requests>=2.31.0
-```
-
----
 
 ## 🔄 How It Works
 
@@ -269,68 +212,9 @@ graph TD
 
 ---
 
-## 🧪 Testing
-
-### Test the Agent
-
-```python
-# Test in Python shell
-from agent import run_agent
-
-# Test weather
-print(run_agent("What's the weather in London?"))
-
-# Test web search
-print(run_agent("Latest AI news"))
-
-# Test reasoning
-print(run_agent("Explain machine learning"))
-```
-
-### CLI Testing
-
-The agent includes a built-in CLI test mode:
-
-```bash
-python agent.py
-```
-
-Example test queries are provided on startup.
-
----
-
-## 🚀 Deployment
-
-### Streamlit Cloud
-
-1. Push your code to GitHub
-2. Go to [Streamlit Cloud](https://streamlit.io/cloud)
-3. Connect your repository
-4. Add environment variables in settings
-5. Deploy!
-
-### Docker Deployment
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-
-EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.port=8501"]
-```
-
-Build and run:
-```bash
-docker build -t react-agent .
-docker run -p 8501:8501 --env-file .env react-agent
-```
-
----
+## 🌐 Live Demo
+Access the deployed application here:
+🔗 https://reactagentproject-xqffkmrky3huewzcuxza8o.streamlit.app/
 
 ## 🤝 Contributing
 
