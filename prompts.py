@@ -1,4 +1,5 @@
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
+
 
 # 🔹 Main ReAct decision-making prompt
 REACT_PROMPT = PromptTemplate.from_template("""
