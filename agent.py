@@ -1,8 +1,6 @@
-
-import os
 import re
 from datetime import datetime
-from dotenv import load_dotenv
+import streamlit as st  # <-- use Streamlit secrets
 from langchain_groq import ChatGroq
 from tools import web_search_tool, weather_tool
 from prompts import REACT_PROMPT, FOLLOW_UP_PROMPT
@@ -10,13 +8,17 @@ from typing import Optional
 
 # ---------------- Environment & LLM ---------------- #
 
-# Load environment variables
-load_dotenv()
+# Load API keys from Streamlit secrets
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
+OPENWEATHER_API_KEY = st.secrets.get("OPENWEATHER_API_KEY")
+TAVILY_API_KEY = st.secrets.get("TAVILY_API_KEY")
 
-# Load Groq API key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
-    raise ValueError("Missing GROQ_API_KEY in .env file")
+    raise ValueError("Missing GROQ_API_KEY in Streamlit secrets")
+if not OPENWEATHER_API_KEY:
+    raise ValueError("Missing OPENWEATHER_API_KEY in Streamlit secrets")
+if not TAVILY_API_KEY:
+    raise ValueError("Missing TAVILY_API_KEY in Streamlit secrets")
 
 # Initialize Groq LLM
 llm = ChatGroq(
@@ -24,7 +26,6 @@ llm = ChatGroq(
     temperature=0.3,
     groq_api_key=GROQ_API_KEY
 )
-
 
 # ---------------- Helper Functions ---------------- #
 
@@ -37,7 +38,6 @@ def extract_city(query: str) -> Optional[str]:
     if match:
         return match.group(1).strip().title()
     return None
-
 
 def is_web_searchable(query: str) -> bool:
     """Determine if the query should go to web search."""
@@ -66,7 +66,6 @@ def is_web_searchable(query: str) -> bool:
     ]
     return any(kw.lower() in query.lower() for kw in keywords)
 
-
 # ---------------- Main Agent Function ---------------- #
 
 def run_agent(query: str) -> str:
@@ -82,12 +81,12 @@ def run_agent(query: str) -> str:
         city = extract_city(query)
         if city:
             print(f"🌤️ Fetching weather for: {city}")
-            return weather_tool(city)
+            return weather_tool(city, api_key=OPENWEATHER_API_KEY)
         return "🌍 Please specify a valid city for weather information. Example: 'What's the weather in Paris?'"
 
     if is_web_searchable(query):
         print(f"🔍 Performing web search for: {query}")
-        return web_search_tool(query)
+        return web_search_tool(query, api_key=TAVILY_API_KEY)
 
     # --- Fallback to LLM reasoning ---
     print(f"🧠 User Query (LLM fallback): {query}")
@@ -109,9 +108,9 @@ def run_agent(query: str) -> str:
             # Dispatch tool
             tool_name_lower = tool_name.lower()
             if "search" in tool_name_lower:
-                observation = web_search_tool(tool_input)
+                observation = web_search_tool(tool_input, api_key=TAVILY_API_KEY)
             elif "weather" in tool_name_lower:
-                observation = weather_tool(tool_input)
+                observation = weather_tool(tool_input, api_key=OPENWEATHER_API_KEY)
             else:
                 return f"❌ Unknown tool: {tool_name}. Available tools: Web Search, Weather"
 
