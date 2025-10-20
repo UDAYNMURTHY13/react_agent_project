@@ -15,7 +15,5 @@ pytest==8.3.3
 # Streamlit UI
 streamlit==1.39.0
 
-# Rendering and logging (compatible versions)
-rich<14,>=10.14.0
-markdown-it-py>=2.2.0
-Pygments>=2.13.0
+# Rendering and logging - Let dependencies manage these automatically
+# Don't pin rich, markdown-it-py, Pygments, or mdurl unless absolutely necessary
