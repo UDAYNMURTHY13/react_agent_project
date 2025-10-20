@@ -1,12 +1,3 @@
-"""
-tools.py
----------
-Contains external tools used by the ReAct Agent:
-1. Web Search Tool  - Fetches top search results using Tavily API.
-2. Weather Tool     - Fetches current weather using OpenWeatherMap API.
-
-Author: Uday N
-"""
 
 import requests
 import os
@@ -15,47 +6,40 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# API keys
+# Default API keys from .env
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 
 # 🧭 Web Search Tool (Tavily API)
-import requests
-import os
-
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-
-def web_search_tool(query: str) -> str:
+def web_search_tool(query: str, api_key: str = None) -> str:
     """
     Searches the web using Tavily API via POST request.
     Returns top 2-3 results with title + snippet + link.
     """
     print(f"🌐 Searching web for: {query}")
 
-    if not TAVILY_API_KEY:
+    key = api_key or TAVILY_API_KEY
+    if not key:
         return "⚠️ Missing TAVILY_API_KEY in .env file"
 
     try:
         url = "https://api.tavily.com/search"
         headers = {
-            "Authorization": f"Bearer {TAVILY_API_KEY}",
+            "Authorization": f"Bearer {key}",
             "Content-Type": "application/json"
         }
         payload = {"query": query, "limit": 3}
 
         response = requests.post(url, headers=headers, json=payload, timeout=10)
-
         if response.status_code != 200:
             return f"⚠️ Web search API error: {response.status_code} - {response.text}"
 
         data = response.json()
         results = data.get("results", [])
-
         if not results:
             return "No relevant results found."
 
-        # Format results with title, snippet, and link
         formatted_results = []
         for item in results:
             title = item.get("title", "No title")
@@ -72,30 +56,29 @@ def web_search_tool(query: str) -> str:
 
 
 # 🌦️ Weather Tool (OpenWeatherMap API)
-def weather_tool(city_name: str) -> str:
+def weather_tool(city_name: str, api_key: str = None) -> str:
     """
     Fetches real-time weather data from OpenWeatherMap API.
     Returns a short description and temperature.
     """
     print(f"🌦️ Fetching weather for: {city_name}")
 
-    if not OPENWEATHER_API_KEY:
+    key = api_key or OPENWEATHER_API_KEY
+    if not key:
         return "⚠️ Missing OPENWEATHER_API_KEY in .env file"
 
     try:
         url = "https://api.openweathermap.org/data/2.5/weather"
         params = {
             "q": city_name,
-            "appid": OPENWEATHER_API_KEY,
+            "appid": key,
             "units": "metric"
         }
         response = requests.get(url, params=params, timeout=10)
-
         if response.status_code != 200:
             return f"⚠️ Weather API error: {response.status_code} - {response.text}"
 
         data = response.json()
-
         if data.get("cod") != 200:
             return f"⚠️ City not found or API error: {data.get('message')}"
 
