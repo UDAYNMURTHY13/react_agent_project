@@ -15,8 +15,7 @@ pytest==8.3.3
 # Streamlit UI
 streamlit==1.39.0
 
-# Rendering and logging
-rich==14.2.0
-markdown-it-py==4.0.0
-Pygments==2.19.2
-mdurl==0.1.2
+# Rendering and logging (compatible versions)
+rich<14,>=10.14.0
+markdown-it-py>=2.2.0
+Pygments>=2.13.0
