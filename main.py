@@ -1,19 +1,3 @@
-"""
-main.py
---------
-Entry point for the ReAct Agent App.
-
-This script runs an interactive command-line chat session
-where the user can ask questions, and the Groq-powered ReAct Agent
-decides whether to:
-1. Answer directly,
-2. Use the Web Search tool, or
-3. Use the Weather tool.
-
-Author: Uday N
-Project: Capstone Project 3 - ReAct Agent with Web Search & Weather Tools
-"""
-
 import os
 from dotenv import load_dotenv
 from agent import run_agent
