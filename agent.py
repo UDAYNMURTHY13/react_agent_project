@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-import streamlit as st  # <-- use Streamlit secrets
+import streamlit as st 
 from langchain_groq import ChatGroq
 from tools import web_search_tool, weather_tool
 from prompts import REACT_PROMPT, FOLLOW_UP_PROMPT
